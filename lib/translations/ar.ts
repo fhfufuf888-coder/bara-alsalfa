@@ -1,5 +1,7 @@
 // Arabic (العربية) translations
-const ar = {
+import type { Translations } from './types';
+
+const ar: Translations = {
   // ── Language Switcher ──────────────────
   lang: {
     english: 'English',
@@ -158,7 +160,7 @@ const ar = {
     errorTitle: 'عذراً، حدث خطأ 😢',
     backToHome: 'العودة للرئيسية',
   },
-} as const;
+};
 
 export default ar;
-export type Translations = typeof ar;
+export type { Translations } from './types';

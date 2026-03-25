@@ -1,5 +1,5 @@
 // English translations
-import type { Translations } from './ar';
+import type { Translations } from './types';
 
 const en: Translations = {
   // ── Language Switcher ──────────────────
