@@ -25,7 +25,7 @@ export default function HomePage() {
             <button className="btn btn-secondary" onClick={() => setMenu('host')} style={{ padding: '20px', fontSize: '1.4rem' }}>
               👑 إنشاء غرفة 
             </button>
-            <button className="btn btn-secondary" onClick={() => setMenu('about')} style={{ padding: '16px', fontSize: '1.2rem', borderColor: 'transparent', background: 'var(--bg-card)', color: 'var(--text-main)', marginTop: '10px' }}>
+            <button className="btn btn-menu" onClick={() => setMenu('about')} style={{ padding: '16px', fontSize: '1.2rem', marginTop: '10px' }}>
               📖 كيف ألعب؟
             </button>
           </div>
