@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Room, Player, Round, supabase } from '../lib/supabaseClient';
+import { useLocale } from '../lib/i18n';
 
 export function VotingScreen({ 
   room, 
@@ -14,6 +15,7 @@ export function VotingScreen({
   currentPlayer: Player,
   roundInfo: Round | null
 }) {
+  const { t } = useLocale();
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
@@ -60,8 +62,8 @@ export function VotingScreen({
 
   return (
     <div className="screen-container animate-fade-in">
-      <h2>وقت التصويت 🗳️</h2>
-      <p style={{ marginBottom: '20px' }}>الجميع يصوت سراً لمن يعتقدون أنه "برا السالفة".</p>
+      <h2>{t.voting.title}</h2>
+      <p style={{ marginBottom: '20px' }}>{t.voting.subtitle}</p>
 
       {!hasVoted ? (
         <>
@@ -87,15 +89,15 @@ export function VotingScreen({
             style={{ marginTop: '20px', opacity: selectedTarget === null ? 0.5 : 1 }}
             disabled={selectedTarget === null}
           >
-            تأكيد التصويت
+            {t.voting.confirmVote}
           </button>
         </>
       ) : (
         <div className="card" style={{ textAlign: 'center' }}>
-          <h3>تم استلام صوتك بنجاح ✅</h3>
-          <p style={{ margin: '15px 0' }}>بانتظار البقية لإنهاء التصويت...</p>
+          <h3>{t.voting.voteReceived}</h3>
+          <p style={{ margin: '15px 0' }}>{t.voting.waitingVotes}</p>
           <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
-             {totalVotesCast} / {players.length} صوتوا
+             {totalVotesCast} / {players.length} {t.voting.voted}
           </div>
         </div>
       )}
@@ -106,7 +108,7 @@ export function VotingScreen({
           onClick={endVoting} 
           style={{ marginTop: '20px' }}
         >
-          {allVoted ? 'إظهار النتائج' : 'إنهاء التصويت مبكراً'}
+          {allVoted ? t.voting.showResults : t.voting.endEarly}
         </button>
       )}
     </div>

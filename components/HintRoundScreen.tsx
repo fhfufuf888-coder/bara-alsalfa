@@ -1,6 +1,7 @@
 'use client';
 
 import { Room, Player, Round, supabase } from '../lib/supabaseClient';
+import { useLocale } from '../lib/i18n';
 
 export function HintRoundScreen({ 
   room, 
@@ -13,6 +14,7 @@ export function HintRoundScreen({
   currentPlayer: Player,
   roundInfo: Round | null
 }) {
+  const { t } = useLocale();
 
   if (!roundInfo) return <div className="loader"></div>;
 
@@ -64,28 +66,28 @@ export function HintRoundScreen({
       }
     } catch (e) {
       console.error(e);
-      alert("حدث خطأ أثناء التصويت.");
+      alert(t.hints.errorVote);
     }
   };
 
   return (
     <div className="screen-container animate-fade-in">
-      <h2>المتحدث الحالي 🎤</h2>
-      <p style={{ marginBottom: '20px' }}>دور المتحدث أن يعطي تلميحة بدون كشف الموضوع.</p>
+      <h2>{t.hints.title}</h2>
+      <p style={{ marginBottom: '20px' }}>{t.hints.subtitle}</p>
 
       <div className="card" style={{ textAlign: 'center', margin: '20px 0', border: isMyTurn ? '2px solid var(--primary)' : 'none' }}>
         <div className="avatar" style={{ margin: '0 auto 15px auto', width: '80px', height: '80px', fontSize: '2rem' }}>
           {activePlayer?.name?.substring(0, 1)}
         </div>
         <h2 style={{ color: isMyTurn ? 'var(--primary)' : 'var(--text-main)' }}>
-          {isMyTurn ? 'دورك الآن!' : `دور: ${activePlayer?.name}`}
+          {isMyTurn ? t.hints.myTurn : `${t.hints.theirTurn} ${activePlayer?.name}`}
         </h2>
       </div>
 
       <div style={{ width: '100%', marginTop: '20px' }}>
          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-           <span>الدورة رقم {currentLap}</span>
-           <span>اللاعب {(currentTurnIndex % numPlayers) + 1} من {numPlayers}</span>
+           <span>{t.hints.lap} {currentLap}</span>
+           <span>{t.hints.player} {(currentTurnIndex % numPlayers) + 1} {t.hints.of} {numPlayers}</span>
          </div>
          <div style={{ width: '100%', height: '10px', background: 'var(--bg-color)', borderRadius: '5px', overflow: 'hidden' }}>
            <div style={{ 
@@ -99,15 +101,15 @@ export function HintRoundScreen({
 
       {(isMyTurn || currentPlayer.is_host) && (
         <button className="btn" style={{ marginTop: '30px' }} onClick={handleNextTurn}>
-          التالي
+          {t.hints.next}
         </button>
       )}
       
       {canVoteToEnd && (
         <div style={{ marginTop: '30px', padding: '15px', background: 'var(--card-bg)', borderRadius: '10px', border: '1px dashed var(--accent)' }}>
-          <h4 style={{ marginBottom: '10px', color: 'var(--text-main)' }}>هل اكتفيتم من التلميحات؟</h4>
+          <h4 style={{ marginBottom: '10px', color: 'var(--text-main)' }}>{t.hints.endHintsTitle}</h4>
           <p style={{ fontSize: '0.9rem', marginBottom: '15px', color: 'var(--text-muted)' }}>
-            تحتاج الأغلبية لإنهاء التلميحات والانتقال للتصويت ({endVotes.length}/{requiredVotes})
+            {t.hints.endHintsDescription} ({endVotes.length}/{requiredVotes})
           </p>
           <button 
             className="btn" 
@@ -119,13 +121,13 @@ export function HintRoundScreen({
               color: hasVotedToEnd ? 'var(--text-muted)' : '#fff'
             }}
           >
-            {hasVotedToEnd ? 'تم إرسال صوتك' : 'تصويت لإنهاء التلميحات ✋'}
+            {hasVotedToEnd ? t.hints.voteSent : t.hints.voteToEnd}
           </button>
         </div>
       )}
       
       {!isMyTurn && !currentPlayer.is_host && !canVoteToEnd && (
-        <p style={{ marginTop: '40px', color: 'var(--text-muted)' }}>استمع جيداً للتلميحة...</p>
+        <p style={{ marginTop: '40px', color: 'var(--text-muted)' }}>{t.hints.listening}</p>
       )}
     </div>
   );

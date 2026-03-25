@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
+import { useLocale } from '../lib/i18n';
 
 export function CreateRoomForm() {
   const router = useRouter();
+  const { t } = useLocale();
   const [hostName, setHostName] = useState('');
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ export function CreateRoomForm() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hostName.trim()) {
-      setError('يرجى إدخال اسمك');
+      setError(t.createRoom.errorName);
       return;
     }
 
@@ -64,36 +66,36 @@ export function CreateRoomForm() {
       }));
 
       // Navigate to Room
-      router.push(`/${roomCode}`);
+      router.push(`/room?code=${roomCode}`);
     } catch (err: any) {
       console.error(err);
-      setError('حدث خطأ أثناء إنشاء الغرفة. تأكد من إعداد قاعدة البيانات.');
+      setError(t.createRoom.errorCreate);
       setLoading(false);
     }
   };
 
   return (
     <div className="card">
-      <h3 style={{ marginBottom: '16px' }}>إنشاء لعبة جديدة</h3>
+      <h3 style={{ marginBottom: '16px' }}>{t.createRoom.title}</h3>
       <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="input-group">
-          <label className="input-label">اسمك</label>
-          <input 
-            type="text" 
-            className="input-field" 
-            placeholder="أدخل اسمك..." 
+          <label className="input-label">{t.createRoom.yourName}</label>
+          <input
+            type="text"
+            className="input-field"
+            placeholder={t.createRoom.namePlaceholder}
             value={hostName}
             onChange={(e) => setHostName(e.target.value)}
             disabled={loading}
           />
         </div>
-        
+
         <div className="input-group">
-          <label className="input-label">أقصى عدد للاعبين ({maxPlayers})</label>
-          <input 
-            type="range" 
-            min="3" 
-            max="12" 
+          <label className="input-label">{t.createRoom.maxPlayers} ({maxPlayers})</label>
+          <input
+            type="range"
+            min="3"
+            max="12"
             value={maxPlayers}
             onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
             style={{ direction: 'ltr' }}
@@ -104,7 +106,7 @@ export function CreateRoomForm() {
         {error && <div className="error-text">{error}</div>}
 
         <button type="submit" className="btn" disabled={loading}>
-          {loading ? <span className="loader"></span> : 'إنشاء غرفة'}
+          {loading ? <span className="loader"></span> : t.createRoom.createBtn}
         </button>
       </form>
     </div>

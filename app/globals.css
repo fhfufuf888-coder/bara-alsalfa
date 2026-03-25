@@ -30,7 +30,13 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Cairo', sans-serif;
+  /* Cairo covers Arabic glyphs beautifully; Inter handles Latin text in LTR mode */
+  font-family: 'Cairo', 'Inter', sans-serif;
+}
+
+/* In LTR mode prefer Inter for Latin text, fall back to Cairo for Arabic */
+[dir="ltr"] * {
+  font-family: 'Inter', 'Cairo', sans-serif;
 }
 
 body {
@@ -99,7 +105,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  /* Extra top padding so the language switcher (fixed, ~48px tall) never overlaps content */
+  padding: 60px 24px 24px;
   gap: 20px;
   align-items: center;
   justify-content: center;
@@ -238,7 +245,8 @@ p {
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  text-align: right;
+  /* Use logical text alignment so it flips automatically with dir */
+  text-align: start;
 }
 
 .input-label {
@@ -305,9 +313,14 @@ p {
 }
 
 .list-item:hover {
+  /* RTL: slide right; LTR: slide left */
   transform: translateX(-4px);
   background: var(--bg-card);
   box-shadow: var(--shadow-sm);
+}
+
+[dir="ltr"] .list-item:hover {
+  transform: translateX(4px);
 }
 
 .list-item.selected {

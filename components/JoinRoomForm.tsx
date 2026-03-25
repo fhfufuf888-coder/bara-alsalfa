@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
+import { useLocale } from '../lib/i18n';
 
 export function JoinRoomForm() {
   const router = useRouter();
+  const { t } = useLocale();
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,12 +15,12 @@ export function JoinRoomForm() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!playerName.trim()) return setError('يرجى إدخال اسمك');
-    if (!roomCode.trim() || roomCode.length < 4) return setError('كود الغرفة غير صحيح');
+    if (!playerName.trim()) return setError(t.joinRoom.errorName);
+    if (!roomCode.trim() || roomCode.length < 4) return setError(t.joinRoom.errorCode);
 
     setLoading(true);
     setError('');
-    
+
     const cleanCode = roomCode.trim().toUpperCase();
 
     try {
@@ -30,11 +32,11 @@ export function JoinRoomForm() {
         .single();
 
       if (fetchError || !room) {
-        throw new Error('الغرفة غير موجودة');
+        throw new Error(t.joinRoom.errorNotFound);
       }
 
       if (room.status !== 'lobby') {
-        throw new Error('اللعبة قد بدأت بالفعل!');
+        throw new Error(t.joinRoom.errorStarted);
       }
 
       // 2. Check current players
@@ -46,12 +48,12 @@ export function JoinRoomForm() {
       if (pError) throw pError;
 
       if (currentPlayers.length >= room.settings.maxPlayers) {
-        throw new Error('الغرفة ممتلئة!');
+        throw new Error(t.joinRoom.errorFull);
       }
 
       const nameExists = currentPlayers.some(p => p.name === playerName.trim());
       if (nameExists) {
-        throw new Error('الاسم مستخدم بالفعل، اختر اسماً آخر');
+        throw new Error(t.joinRoom.errorNameTaken);
       }
 
       // 3. Insert Player
@@ -76,24 +78,24 @@ export function JoinRoomForm() {
       }));
 
       // Navigate to Room
-      router.push(`/${cleanCode}`);
+      router.push(`/room?code=${cleanCode}`);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'حدث خطأ أثناء الانضمام. يرجى المحاولة مرة أخرى.');
+      setError(err.message || t.joinRoom.errorJoin);
       setLoading(false);
     }
   };
 
   return (
     <div className="card">
-      <h3 style={{ marginBottom: '16px' }}>الانضمام إلى لعبة</h3>
+      <h3 style={{ marginBottom: '16px' }}>{t.joinRoom.title}</h3>
       <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="input-group">
-          <label className="input-label">كود الغرفة</label>
-          <input 
-            type="text" 
-            className="input-field" 
-            placeholder="أدخل كود الغرفة (مثال: AB12X)" 
+          <label className="input-label">{t.joinRoom.roomCode}</label>
+          <input
+            type="text"
+            className="input-field"
+            placeholder={t.joinRoom.roomCodePlaceholder}
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
             style={{ textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center' }}
@@ -102,11 +104,11 @@ export function JoinRoomForm() {
         </div>
 
         <div className="input-group">
-          <label className="input-label">اسمك</label>
-          <input 
-            type="text" 
-            className="input-field" 
-            placeholder="أدخل اسمك..." 
+          <label className="input-label">{t.joinRoom.yourName}</label>
+          <input
+            type="text"
+            className="input-field"
+            placeholder={t.joinRoom.namePlaceholder}
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
             disabled={loading}
@@ -116,7 +118,7 @@ export function JoinRoomForm() {
         {error && <div className="error-text">{error}</div>}
 
         <button type="submit" className="btn btn-secondary" disabled={loading}>
-          {loading ? <span className="loader" style={{ borderColor: 'var(--primary)' }}></span> : 'انضمام'}
+          {loading ? <span className="loader" style={{ borderColor: 'var(--primary)' }}></span> : t.joinRoom.joinBtn}
         </button>
       </form>
     </div>

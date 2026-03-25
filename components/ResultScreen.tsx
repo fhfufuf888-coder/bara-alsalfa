@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Room, Player, Round, supabase } from '../lib/supabaseClient';
+import { useLocale } from '../lib/i18n';
 
 export function ResultScreen({ 
   room, 
@@ -14,6 +15,7 @@ export function ResultScreen({
   currentPlayer: Player,
   roundInfo: Round | null
 }) {
+  const { t } = useLocale();
   const [guess, setGuess] = useState('');
 
   if (!roundInfo) return <div className="loader"></div>;
@@ -98,62 +100,64 @@ export function ResultScreen({
 
   return (
     <div className="screen-container scroll-container animate-fade-in">
-      <h2>النتائج 🏆</h2>
+      <h2>{t.results.title}</h2>
       
       <div className="card" style={{ textAlign: 'center' }}>
-         <p>الشخص اللي كان برا السالفة هو:</p>
+         <p>{t.results.outsiderWas}</p>
          <h1 style={{ color: 'var(--secondary)' }}>{outsiderPlayer?.name}</h1>
          
          {(!isOutsiderCaught || roundInfo.final_guess) && (
            <div style={{ marginTop: '15px' }}>
-             <p>الموضوع كان: <strong style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>{roundInfo.topic}</strong></p>
+             <p>{t.results.topicWas} <strong style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>{roundInfo.topic}</strong></p>
            </div>
          )}
       </div>
 
       {computedResult === 'outsider_survived' && (
         <div className="card" style={{ textAlign: 'center', background: 'var(--accent)' }}>
-          <h2 style={{ color: '#2d3436' }}>نجا برا السالفة! 🎉</h2>
-          <p style={{ color: '#2d3436' }}>لم يكتشفه الجميع، أو تعادلت الأصوات.</p>
+          <h2 style={{ color: '#2d3436' }}>{t.results.outsiderSurvived}</h2>
+          <p style={{ color: '#2d3436' }}>{t.results.outsiderSurvivedNote}</p>
         </div>
       )}
 
       {isOutsiderCaught && !roundInfo.final_guess && (
         <div className="card">
-          <h3 style={{ color: 'var(--secondary)', textAlign: 'center' }}>تم كشف البار السالفة! 🚨</h3>
+          <h3 style={{ color: 'var(--secondary)', textAlign: 'center' }}>{t.results.outsiderCaught}</h3>
           {isOutsider ? (
             <div style={{ marginTop: '15px' }}>
-              <p style={{ textAlign: 'center', marginBottom: '10px' }}>لديك فرصة أخيرة. ما هو الموضوع؟</p>
+              <p style={{ textAlign: 'center', marginBottom: '10px' }}>{t.results.lastChance}</p>
               <input 
                 className="input-field" 
-                placeholder="اكتب الموضوع هنا..." 
+                placeholder={t.results.guessTopic}
                 value={guess}
                 onChange={(e) => setGuess(e.target.value)}
               />
-              <button className="btn" onClick={submitGuess} style={{ marginTop: '15px' }}>تأكيد التخمين</button>
+              <button className="btn" onClick={submitGuess} style={{ marginTop: '15px' }}>{t.results.confirmGuess}</button>
             </div>
           ) : (
-            <p style={{ textAlign: 'center', marginTop: '10px', color: 'var(--text-muted)' }}>ننتظر تخمين {outsiderPlayer?.name} الأخير المُنقذ...</p>
+            <p style={{ textAlign: 'center', marginTop: '10px', color: 'var(--text-muted)' }}>
+              {t.results.waitingGuess} {outsiderPlayer?.name}{t.results.waitingGuessSuffix}
+            </p>
           )}
         </div>
       )}
 
       {computedResult === 'outsider_guessed' && (
         <div className="card" style={{ textAlign: 'center', background: 'var(--accent)' }}>
-          <h2 style={{ color: '#2d3436' }}>بطل! 👏</h2>
-          <p style={{ color: '#2d3436' }}>عرف الموضوع بالرغم من كشفه. {outsiderPlayer?.name} يفوز!</p>
+          <h2 style={{ color: '#2d3436' }}>{t.results.outsiderGuessed}</h2>
+          <p style={{ color: '#2d3436' }}>{t.results.outsiderGuessedNote} {outsiderPlayer?.name} {t.results.outsiderGuessedWinner}</p>
         </div>
       )}
 
       {computedResult === 'group' && (
         <div className="card" style={{ textAlign: 'center' }}>
-          <h2 style={{ color: 'var(--primary)' }}>فازوا الباقين! 🥳</h2>
-          <p>تم كشفه ولم يعرف الموضوع.</p>
+          <h2 style={{ color: 'var(--primary)' }}>{t.results.groupWins}</h2>
+          <p>{t.results.groupWinsNote}</p>
         </div>
       )}
 
       <div className="card" style={{ width: '100%' }}>
-         <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>كيف صوت الناس؟</h3>
+         <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>{t.results.howVoted}</h3>
          {players.map((p) => {
            const count = voteCounts[p.id] || 0;
            if (count === 0 && p.id !== outsiderId) return null;
@@ -161,17 +165,17 @@ export function ResultScreen({
            return (
              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--bg-color)' }}>
                <span>{p.name} {p.id === outsiderId ? '🕵️‍♂️' : ''}</span>
-               <span style={{ fontWeight: 'bold' }}>{count} صوت</span>
+               <span style={{ fontWeight: 'bold' }}>{count} {t.results.votes}</span>
              </div>
            );
          })}
       </div>
 
       {currentPlayer.is_host && (
-        <button className="btn" onClick={playAgain} style={{ marginTop: '20px' }}>العب جولة جديدة مع نفس المجموعة</button>
+        <button className="btn" onClick={playAgain} style={{ marginTop: '20px' }}>{t.results.playAgain}</button>
       )}
       {!currentPlayer.is_host && (
-        <p style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-muted)' }}>ننتظر المضيف لبدء جولة جديدة...</p>
+        <p style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-muted)' }}>{t.results.waitingForHost}</p>
       )}
     </div>
   );

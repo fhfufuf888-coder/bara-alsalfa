@@ -1,17 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase, Room, Player, Round } from '../../lib/supabaseClient';
 import { LobbyScreen } from '../../components/LobbyScreen';
 import { RoleDistributionScreen } from '../../components/RoleDistributionScreen';
 import { HintRoundScreen } from '../../components/HintRoundScreen';
 import { VotingScreen } from '../../components/VotingScreen';
 import { ResultScreen } from '../../components/ResultScreen';
+import { useLocale } from '../../lib/i18n';
 
-export default function GameRoom({ params }: { params: { roomCode: string } }) {
+function GameRoomContent() {
   const router = useRouter();
-  const roomCodeSearch = params.roomCode.toUpperCase();
+  const searchParams = useSearchParams();
+  const { t } = useLocale();
+  const roomCodeSearch = (searchParams.get('code') || '').toUpperCase();
   
   const [room, setRoom] = useState<Room | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -23,6 +26,11 @@ export default function GameRoom({ params }: { params: { roomCode: string } }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!roomCodeSearch) {
+      router.replace('/');
+      return;
+    }
+
     let isMounted = true;
     let activeChannel: ReturnType<typeof supabase.channel> | null = null;
 
@@ -89,9 +97,8 @@ export default function GameRoom({ params }: { params: { roomCode: string } }) {
           (payload) => {
             if (payload.new.id === initialRoom.id) {
               setRoom(payload.new as Room);
-              setActionLoading(false); // Clear loading shield on transition
+              setActionLoading(false);
               if (payload.new.current_round_id) {
-                // fetch new round info
                 supabase.from('rounds').select('*').eq('id', payload.new.current_round_id).single()
                   .then(({ data }) => setRoundInfo(data as Round));
               }
@@ -100,7 +107,6 @@ export default function GameRoom({ params }: { params: { roomCode: string } }) {
         )
         .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, 
           async (payload) => {
-             // We refetch players for our room
              const { data: pData } = await supabase.from('players').select('*').eq('room_id', initialRoom.id);
              if (pData) setPlayers(pData as Player[]);
           }
@@ -132,14 +138,13 @@ export default function GameRoom({ params }: { params: { roomCode: string } }) {
   if (error || !room || !currentPlayer) {
     return (
       <div className="screen-container">
-        <h2>عذراً، حدث خطأ 😢</h2>
+        <h2>{t.room.errorTitle}</h2>
         <p>{error}</p>
-        <button className="btn" onClick={() => router.push('/')}>العودة للرئيسية</button>
+        <button className="btn" onClick={() => router.push('/')}>{t.room.backToHome}</button>
       </div>
     );
   }
 
-  // Render appropriate screen based on room status
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {actionLoading && (
@@ -154,5 +159,13 @@ export default function GameRoom({ params }: { params: { roomCode: string } }) {
       {room.status === 'voting' && <VotingScreen room={room} players={players} currentPlayer={currentPlayer} roundInfo={roundInfo} />}
       {room.status === 'results' && <ResultScreen room={room} players={players} currentPlayer={currentPlayer} roundInfo={roundInfo} />}
     </div>
+  );
+}
+
+export default function GameRoom() {
+  return (
+    <Suspense fallback={<div className="loader"></div>}>
+      <GameRoomContent />
+    </Suspense>
   );
 }
