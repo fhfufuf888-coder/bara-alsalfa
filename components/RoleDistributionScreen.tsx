@@ -59,11 +59,17 @@ export function RoleDistributionScreen({
             <div className="flip-card-back">
               {isOutsider ? (
                 <>
+                  <div style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 12px', borderRadius: '20px', fontSize: '1rem', marginBottom: '15px', display: 'inline-block' }}>
+                    التصنيف: <strong>{room.settings?.current_category || 'غير معروف'}</strong>
+                  </div>
                   <div className="role-text-outsider" style={{ color: 'var(--secondary)' }}>أنت برا السالفة! 🤷‍♂️</div>
                   <p style={{ marginTop: '15px' }}>حاول ألا يكتشفك الآخرون، واسمع تلميحاتهم لتعرف الموضوع.</p>
                 </>
               ) : (
                 <>
+                  <div style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 12px', borderRadius: '20px', fontSize: '1rem', marginBottom: '15px', display: 'inline-block' }}>
+                    التصنيف: <strong>{room.settings?.current_category || 'غير معروف'}</strong>
+                  </div>
                   <div className="role-text-insider" style={{ color: 'var(--primary)' }}>أنت داخل السالفة 🤫</div>
                   <p>الموضوع المخفي هو:</p>
                   <div className="topic-text" style={{ background: 'var(--accent)', padding: '8px 16px', borderRadius: '8px', fontSize: '2rem', fontWeight: 'bold' }}>

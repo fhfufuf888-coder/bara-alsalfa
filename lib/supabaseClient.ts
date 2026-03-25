@@ -22,6 +22,7 @@ export type Room = {
     maxPlayers: number;
     scores?: Record<string, number>;
     awarded_rounds?: string[];
+    current_category?: string;
   };
   current_round_id: string | null;
   created_at: string;

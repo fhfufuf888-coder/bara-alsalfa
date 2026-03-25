@@ -16,6 +16,8 @@ export function LobbyScreen({
   onStartLoading: (loading: boolean) => void 
 }) {
   const [selectedCategory, setSelectedCategory] = useState<string>('عشوائي');
+  const [customCategory, setCustomCategory] = useState<string>('');
+  const [customWords, setCustomWords] = useState<string>('');
 
   const handleStartGame = async () => {
     if (!currentPlayer.is_host) return;
@@ -24,11 +26,30 @@ export function LobbyScreen({
       return;
     }
     
+    // Validate and build topic/category
+    let finalTopic = '';
+    let finalCategory = selectedCategory;
+
+    if (selectedCategory === 'custom') {
+      const words = customWords.split(/[،,]/).map(w => w.trim()).filter(Boolean);
+      if (words.length < 3) {
+        alert('الرجاء إدخال 3 كلمات على الأقل مفصولة بفاصلة (, ،).');
+        return;
+      }
+      finalTopic = words[Math.floor(Math.random() * words.length)];
+      finalCategory = customCategory.trim() || 'تصنيف مخصص';
+    } else {
+      finalTopic = getRandomTopic(selectedCategory);
+      if (selectedCategory === 'عشوائي') {
+        const foundCat = Object.keys(TOPICS).find(cat => TOPICS[cat].includes(finalTopic));
+        finalCategory = foundCat || 'عشوائي';
+      }
+    }
+    
     onStartLoading(true);
     
     try {
       // 1. Generate topic and roles
-      const topic = getRandomTopic(selectedCategory);
       const outsiderIndex = Math.floor(Math.random() * players.length);
       const outsiderId = players[outsiderIndex].id;
       
@@ -39,7 +60,7 @@ export function LobbyScreen({
         .from('rounds')
         .insert({
           room_id: room.id,
-          topic: topic,
+          topic: finalTopic,
           outsider_player_id: outsiderId,
           turn_order: turnOrder,
           current_turn_index: 0,
@@ -55,7 +76,11 @@ export function LobbyScreen({
         .from('rooms')
         .update({ 
           status: 'roles', 
-          current_round_id: roundData.id 
+          current_round_id: roundData.id,
+          settings: {
+            ...room.settings,
+            current_category: finalCategory
+          }
         })
         .eq('id', room.id);
         
@@ -141,13 +166,36 @@ export function LobbyScreen({
                 className="input-field" 
                 value={selectedCategory} 
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                style={{ padding: '12px', fontSize: '1.2rem', cursor: 'pointer', background: 'var(--bg-card)' }}
+                style={{ padding: '12px', fontSize: '1.2rem', cursor: 'pointer', background: 'var(--bg-card)', marginBottom: selectedCategory === 'custom' ? '15px' : '0' }}
               >
                 <option value="عشوائي">🎲 عشوائي (كل التصنيفات)</option>
                 {Object.keys(TOPICS).map(cat => (
                   <option key={cat} value={cat}>📌 {cat}</option>
                 ))}
+                <option value="custom" style={{ fontWeight: 'bold' }}>✏️ تصنيف مخصص (كلماتك الخاصة)</option>
               </select>
+
+              {selectedCategory === 'custom' && (
+                <div style={{ background: 'var(--bg-color)', padding: '15px', borderRadius: '12px', marginTop: '10px', border: '1px dashed var(--primary)' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>اسم التصنيف (اختياري):</label>
+                  <input 
+                    className="input-field" 
+                    placeholder="مثال: أسماء أصدقائنا" 
+                    value={customCategory} 
+                    onChange={e => setCustomCategory(e.target.value)}
+                    style={{ marginBottom: '15px', padding: '10px' }}
+                  />
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>الكلمات (افصل بينها بفاصلة):</label>
+                  <textarea 
+                    className="input-field" 
+                    placeholder="أحمد، خالد، سارة، محمد..." 
+                    value={customWords} 
+                    onChange={e => setCustomWords(e.target.value)}
+                    rows={3}
+                    style={{ padding: '10px', resize: 'none' }}
+                  ></textarea>
+                </div>
+              )}
             </div>
             <Button onClick={handleStartGame} disabled={players.length < 3}>
               {players.length < 3 ? 'بانتظار المزيد من اللاعبين...' : 'ابدأ اللعب الآن'}
