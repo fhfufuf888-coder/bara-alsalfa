@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { supabase, Player, Room } from '../lib/supabaseClient';
-import { getRandomTopic, shuffleArray } from '../lib/gameLogic';
+import { getRandomTopic, shuffleArray, TOPICS } from '../lib/gameLogic';
 
 export function LobbyScreen({ 
   room, 
@@ -14,7 +15,8 @@ export function LobbyScreen({
   currentPlayer: Player,
   onStartLoading: (loading: boolean) => void 
 }) {
-  
+  const [selectedCategory, setSelectedCategory] = useState<string>('عشوائي');
+
   const handleStartGame = async () => {
     if (!currentPlayer.is_host) return;
     if (players.length < 3) {
@@ -26,7 +28,7 @@ export function LobbyScreen({
     
     try {
       // 1. Generate topic and roles
-      const topic = getRandomTopic('عشوائي');
+      const topic = getRandomTopic(selectedCategory);
       const outsiderIndex = Math.floor(Math.random() * players.length);
       const outsiderId = players[outsiderIndex].id;
       
@@ -130,14 +132,31 @@ export function LobbyScreen({
         </div>
       </div>
 
-      <div style={{ width: '100%' }}>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px' }}>
         {currentPlayer.is_host ? (
-          <Button onClick={handleStartGame} disabled={players.length < 3}>
-            {players.length < 3 ? 'بانتظار المزيد من اللاعبين...' : 'ابدأ اللعب الآن'}
-          </Button>
+          <>
+            <div className="card" style={{ padding: '16px', background: 'rgba(255,255,255,0.6)' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: 'var(--text-main)' }}>📋 اختر تصنيف السالفة:</label>
+              <select 
+                className="input-field" 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{ padding: '12px', fontSize: '1.2rem', cursor: 'pointer', background: 'var(--bg-card)' }}
+              >
+                <option value="عشوائي">🎲 عشوائي (كل التصنيفات)</option>
+                {Object.keys(TOPICS).map(cat => (
+                  <option key={cat} value={cat}>📌 {cat}</option>
+                ))}
+              </select>
+            </div>
+            <Button onClick={handleStartGame} disabled={players.length < 3}>
+              {players.length < 3 ? 'بانتظار المزيد من اللاعبين...' : 'ابدأ اللعب الآن'}
+            </Button>
+          </>
         ) : (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
-            بانتظار المضيف لبدء اللعبة...
+          <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px', background: 'rgba(255,255,255,0.5)' }}>
+            <div className="loader" style={{ borderColor: 'var(--primary)', width: '20px', height: '20px', marginBottom: '10px' }}></div>
+            <p>بانتظار المضيف لاختيار التصنيف وبدء اللعبة...</p>
           </div>
         )}
       </div>
