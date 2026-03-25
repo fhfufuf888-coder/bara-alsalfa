@@ -83,6 +83,35 @@ export function LobbyScreen({
       </div>
 
       <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {room.settings?.scores && Object.keys(room.settings.scores).length > 0 && (
+          <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--accent) 0%, #ffeaa7 100%)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ textAlign: 'center', color: '#2d3436', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '1.4rem' }}>
+              🏆 لوحة الصدارة
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[...players]
+                .sort((a,b) => (room.settings.scores[b.id] || 0) - (room.settings.scores[a.id] || 0))
+                .map((p, index) => {
+                  const score = room.settings.scores[p.id] || 0;
+                  let medal = '';
+                  if (index === 0 && score > 0) medal = '🥇';
+                  else if (index === 1 && score > 0) medal = '🥈';
+                  else if (index === 2 && score > 0) medal = '🥉';
+                  
+                  return (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.85)', borderRadius: '12px', fontWeight: 'bold', color: '#2d3436', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '1.3rem', width: '25px', textAlign: 'center' }}>{medal}</span>
+                        <span style={{ fontSize: '1.1rem' }}>{p.name} {p.id === currentPlayer.id ? <span style={{fontSize:'0.8rem', opacity:0.7}}>(أنت)</span> : ''}</span>
+                      </div>
+                      <span style={{ color: 'var(--primary-dark)', fontSize: '1.3rem' }}>{score}</span>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
           <h3 style={{ margin: 0 }}>اللاعبين</h3>
           <span style={{ fontWeight: 'bold' }}>{players.length} / {room.settings.maxPlayers}</span>

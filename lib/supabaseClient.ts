@@ -20,6 +20,8 @@ export type Room = {
   status: 'lobby' | 'roles' | 'hints' | 'voting' | 'results';
   settings: {
     maxPlayers: number;
+    scores?: Record<string, number>;
+    awarded_rounds?: string[];
   };
   current_round_id: string | null;
   created_at: string;

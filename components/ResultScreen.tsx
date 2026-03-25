@@ -65,9 +65,31 @@ export function ResultScreen({
   const playAgain = async () => {
     if (!currentPlayer.is_host) return;
     try {
+      // Award points safely
+      const awardedRounds = room.settings?.awarded_rounds || [];
+      const newScores = { ...(room.settings?.scores || {}) };
+      
+      if (!awardedRounds.includes(roundInfo.id)) {
+        for (const p of players) {
+          let earned = 0;
+          if (computedResult === 'group' && p.id !== outsiderId) earned = 100;
+          if ((computedResult === 'outsider_survived' || computedResult === 'outsider_guessed') && p.id === outsiderId) earned = 500;
+          if (earned > 0) newScores[p.id] = (newScores[p.id] || 0) + earned;
+        }
+        awardedRounds.push(roundInfo.id);
+      }
+
       await supabase
         .from('rooms')
-        .update({ status: 'lobby', current_round_id: null })
+        .update({ 
+          status: 'lobby', 
+          current_round_id: null,
+          settings: {
+            ...room.settings,
+            scores: newScores,
+            awarded_rounds: awardedRounds
+          }
+        })
         .eq('id', room.id);
     } catch (e) {
       console.error(e);
